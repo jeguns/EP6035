@@ -27,11 +27,11 @@ acf(x1,type="covariance",plot=F)
 library(quantmod)
 Lag(x1)
 
-x1n  = x1[-1]
-x1ln = Lag(x1)[-1]
+(x1n  = x1[-1])
+(x1ln = Lag(x1)[-1])
 
 sum((x1n-mean(x1n))*(x1ln-mean(x1ln)))/9 # autocovarianza convencional
-cov(D, use = "pairwise.complete.obs") # autocovarianza convencional
+cov(data.frame(x1n,x1ln)) # autocovarianza convencional
 
 sum((x1n-mean(x1))*(x1ln-mean(x1)))/11 # autocovarianza en S.T.
 acf(x1,type="covariance",plot=F) # autocovarianza en S.T.
@@ -65,3 +65,4 @@ set.seed(120)
 y = rnorm(100)
 plot(y, type="b", pch=18)
 abline(h=0)
+
