@@ -27,8 +27,10 @@ acf(x1,type="covariance",plot=F)
 library(quantmod)
 Lag(x1)
 
-(x1n  = x1[-1])
+(x1n  = x1[-1]) 
 (x1ln = Lag(x1)[-1])
+
+data.frame(x1n,x1ln)
 
 sum((x1n-mean(x1n))*(x1ln-mean(x1ln)))/9 # autocovarianza convencional
 cov(data.frame(x1n,x1ln)) # autocovarianza convencional
@@ -43,26 +45,26 @@ sum((x1n-mean(x1n))*(x1ln-mean(x1ln)))/(sqrt(sum((x1n-mean(x1n))^2))*sqrt(sum((x
 
 sum((x1n-mean(x1))*(x1ln-mean(x1)))/sum((x1-mean(x1))^2) # autocorrelación en S.T.
   
-(gamma1 = sum((x1n-mean(x1))*(x1ln-mean(x1)))/11)
-gamma1/gamma0
+(gamma1 = sum((x1n-mean(x1))*(x1ln-mean(x1)))/11) # autocovar. de orden 1
+gamma1/gamma0 # autocovar. de orden1 / autocov. de orden0
 acf(x1,plot=F)
 
-(gamma2 = sum((x1[-c(1:2)]-mean(x1))*(Lag(x1,2)[-c(1:2)]-mean(x1)))/11)
-gamma2/gamma0
+(gamma2 = sum((x1[-c(1:2)]-mean(x1))*(Lag(x1,2)[-c(1:2)]-mean(x1)))/11) # autocov. de orden 2
+gamma2/gamma0 # autocovar. de orden2 / autocov. de orden0
 acf(x1,plot=F)
 
-(gamma3 = sum((x1[-c(1:3)]-mean(x1))*(Lag(x1,3)[-c(1:3)]-mean(x1)))/11)
-gamma3/gamma0
+(gamma3 = sum((x1[-c(1:3)]-mean(x1))*(Lag(x1,3)[-c(1:3)]-mean(x1)))/11) # autocov. de orden 3
+gamma3/gamma0 # autocovar. de orden3 / autocov. de orden0
 acf(x1,plot=F)
 
-(gamma7 = sum((x1[-c(1:7)]-mean(x1))*(Lag(x1,7)[-c(1:7)]-mean(x1)))/11)
-gamma7/gamma0
+(gamma7 = sum((x1[-c(1:7)]-mean(x1))*(Lag(x1,7)[-c(1:7)]-mean(x1)))/11) # autocov. de orden 7
+gamma7/gamma0 # autocovar. de orden7 / autocov. de orden0
 acf(x1,plot=F)
 
 # Ruido blanco iid
 
-set.seed(120)
-y = rnorm(100)
+set.seed(150)
+y = rnorm(100,0,3)
 plot(y, type="b", pch=18)
 abline(h=0)
 
