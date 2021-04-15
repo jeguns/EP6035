@@ -2,26 +2,27 @@
 
 # Carga de paquetes -------------------------------------------------------
 
-library(readxl)
-library(zoo)
+library(readxl) # lectura datos en excel
+library(zoo) # series de tiempo con índices 
 library(dplyr)
-library(ggplot2)
-library(lubridate)
+library(ggplot2) # gráficas
+library(lubridate) # fechas 
 library(scales)
-library(tidyr)
-library(xts)
-library(ggfortify)
+library(tidyr) # para función replace_na
+library(xts) # para función xts
+library(ggfortify) # para que funcione autoplot
+library(TSA) # para acf
 
 # Lectura de datos --------------------------------------------------------
 
-datos = read_excel("Cifras.xlsx")
+datos = read_xlsx("Cifras.xlsx")
 
 # Preprocesamiento de datos -----------------------------------------------
 
 datos %>% 
   mutate(Fecha = ymd(Fecha)) %>% 
   replace_na(list(Recuperados=0,Hospitalizados=0)) %>% 
-  mutate(Dia = day(Fecha),
+  mutate(Dia = day(Fecha), # yday # wday
          Sem = week(Fecha), # epiweek # isoweek
          Mes = month(Fecha),
          Tri = quarter(Fecha),
@@ -40,6 +41,7 @@ STRecuperados %>% str()
 
 ts(Hospitalizados) -> STHospitalizados
 
+xts(Recuperados,Fecha) -> Recuperados2
 Recuperados %>% xts(Fecha) -> Recuperados2
 Recuperados2 %>% str()
 
@@ -47,8 +49,8 @@ Hospitalizados %>% xts(Fecha) -> Hospitalizados2
 
 # Gráficas de ST - Función plot -------------------------------------------
 
-Recuperados %>% plot()
-STRecuperados %>% plot()
+Recuperados %>% plot() # graficando el vector tradicional
+STRecuperados %>% plot() # graficando el vector de ST
 STRecuperados %>% plot(type = "b",
                        pch  = 18,
                        ylab = "N° de pacientes", 
@@ -68,7 +70,6 @@ STRecuperados %>%
 STRecuperados %>% 
   ggplot2::autoplot(ts.geom = "point", colour = "darkgreen", shape = 8)
 
-
 # Gráficas de ST - Función qplot ------------------------------------------
 
 qplot(x    = Fecha, 
@@ -87,24 +88,26 @@ qplot(x    = Fecha,
 
 datos %>% 
   ggplot(aes(x=Fecha,y=Recuperados))+
-  geom_line(color = "darkblue", size=1) + 
+  geom_line(color = "darkblue", size=0.5) + 
   scale_x_date(limits = c(min(datos$Fecha), max(datos$Fecha)),
-               breaks = function(x) seq.Date(from = min(x), to = max(x), by = "30 days"),
+               breaks = function(x) seq.Date(from = min(x), to = max(x), by = "15 days"),
                expand = c(0,0),
-               labels = date_format("%b %Y"))+
+               labels = date_format("%d-%b-%y"))+
+  scale_y_continuous(breaks = seq(0,10000,1500))+
   labs(x = "Fecha",
        y = "Pacientes",
        title = "Evolución de pacientes recuperados de COVID-19",
        subtitle = "Datos a nivel nacional",
        caption = "Fuente:MINSA")+
-  theme_minimal() +
-  theme(axis.text = element_text(size=8)) -> grafico1
+  theme_minimal()+
+  theme(axis.text   = element_text(size=8),
+        axis.text.x = element_text(angle=45)) -> grafico1
 
-ggsave('grafico1.png',grafico1)
+ggsave('grafico1.png',grafico1,width=30,height=20,units="cm")
 
 datos %>% 
   ggplot(aes(x=Fecha,y=Recuperados))+
-  geom_area(fill = "firebrick", alpha=0.7) + 
+  geom_area(fill = "firebrick", alpha=0.95) + 
   scale_x_date(limits = c(ymd("2020-03-16"), max(datos$Fecha)),
                breaks = function(x) seq.Date(from = min(x), to = max(x), by = "14 days"),
                expand = c(0,0),
@@ -123,7 +126,7 @@ ggsave('grafico2.png',grafico2, width = 25, height = 15, units ="cm")
 
 Recuperados %>% 
   stats::acf(type = "covariance",
-             main="Función de autocorrelación")
+             main = "Función de autocovarianza")
 
 Recuperados %>% 
   stats::acf(type = "covariance",
@@ -134,8 +137,11 @@ Recuperados %>%
 
 Recuperados %>% 
   stats::acf(main ="Función de autocorrelación",
-             plot = F)
+             plot = F,
+             lag  = 100)
 
+Recuperados %>% 
+  TSA::acf(main="Función de autocorrelación")
 
 
 # Gráfica de 2 ST - Función ts.plot ---------------------------------------
