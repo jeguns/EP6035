@@ -9,7 +9,7 @@ library(ggplot2) # gráficas
 library(lubridate) # fechas 
 library(scales)
 library(tidyr) # para función replace_na
-library(xts) # para función xts
+library(xts) # para función xts y las agregaciones apply
 library(ggfortify) # para que funcione autoplot
 library(TSA) # para acf
 
@@ -229,7 +229,7 @@ ggsave('grafico5.png',grafico5, width = 30, height = 30, units ="cm")
 
 # Agregación con xts ------------------------------------------------------
 
-Recuperados2 %>% apply.weekly(sum)
+Recuperados2 %>% apply.weekly(min)
 Recuperados2 %>% apply.monthly(sum)
 Recuperados2 %>% apply.quarterly(sum)
 Recuperados2 %>% apply.yearly(sum)
@@ -242,11 +242,6 @@ Recuperados2 %>% apply.weekly(var)
 Recuperados2 %>% apply.monthly(quantile,probs=c(0.25,0.6))
 
 Recuperados2 %>% apply.quarterly(function(x) (min(x)+max(x))/2)
-
-Recuperados2 %>% 
-  apply.weekly(mean) %>% 
-  plot(main = "Pacientes recuperados COVID-19 (media semanal nacional)") %>% 
-  points()
 
 Recuperados2 %>% 
   apply.weekly(mean) %>% 
