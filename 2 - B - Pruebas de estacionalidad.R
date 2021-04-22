@@ -1,9 +1,9 @@
 
 # Paquetes ----------------------------------------------------------------
 
-library(readr)
-library(lubridate)
-library(zoo)
+library(readr) # función parse_number
+library(lubridate) # funciones month, year
+library(zoo) # función yearmon
 library(dplyr)
 library(ggplot2)
 library(seastests)
@@ -18,8 +18,8 @@ datos_simu$y %>%
 y %>% 
   autoplot()+ 
   geom_line(color="dodgerblue3",lwd=2)+
-  labs(title = "Interés de búsqueda del término vacuna",
-       caption = "Fuente: Google Trends")+
+  labs(title = "Ruido blanco",
+       caption = "")+
   theme_minimal()
 
 
@@ -38,10 +38,9 @@ InteresFP %>%
   geom_bar(stat="identity")+
   labs(x = "Fecha",
        y = "Interés",
-       title = "Interés de búsqueda del término Fiestas patrias",
+       title = "Interés medio mensual de búsqueda del término Fiestas patrias",
        caption = "Fuente: Google Trends")+
   theme_minimal()
-
 
 
 # Seasonplot --------------------------------------------------------------
@@ -53,7 +52,6 @@ datos_simu$y %>%
 InteresFP$IM %>% 
   ts(frequency = 12, start = c(2016,4)) %>% 
   seasonplot()
-
 
 # Monthplot ---------------------------------------------------------------
 
@@ -81,13 +79,13 @@ boxplot(IM0 ~ cycle(IM0), col = "gold")
 
 datos_simu$y %>% 
   ts() %>% 
-  TSA::acf(type = "correlation", lag = 20, plot = FALSE) %>% 
+  TSA::acf(type = "correlation", lag = 60, plot = FALSE) %>% 
   autoplot() +
   theme_minimal()
 
 InteresFP$IM %>% 
   ts() %>% 
-  TSA::acf(type = "correlation", lag = 36, plot = FALSE) %>% 
+  TSA::acf(type = "correlation", lag = 50, plot = FALSE) %>% 
   autoplot() +
   theme_minimal()
 
@@ -102,7 +100,6 @@ InteresFP$IM %>%
   ts(frequency = 12, start = c(2016,4)) -> IM0
 kruskal.test(IM0 ~ cycle(IM0))
 
-
 # Webel y Ollech ----------------------------------------------------------
 
 datos_simu$y %>% 
@@ -114,3 +111,4 @@ InteresFP$IM %>%
   ts(frequency = 12, start = c(2016,4)) %>% 
   wo %>% 
   summary
+
