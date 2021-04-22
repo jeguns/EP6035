@@ -9,10 +9,10 @@ library(readr)
 library(readxl)
 library(forecast) # función ma
 library(TSA)
-library(funtimes)
-library(Kendall)
-library(trend)
-library(randtests)
+library(funtimes) # función notrend_test
+library(Kendall) # función Mann Kendall
+library(trend) # función cs.test
+library(randtests) # función cox.stuart.test
 
 # Creación y lectura de datos ---------------------------------------------
 
@@ -179,7 +179,6 @@ Recuperados %>% ts %>% cs.test
 Recuperados %>% ts %>% cox.stuart.test
 Recuperados %>% ts %>% cox.stuart.test(alternative = "left.sided")
 Recuperados %>% ts %>% cox.stuart.test(alternative = "right.sided")
-
 
 # Prueba de WAK -----------------------------------------------------------
 
