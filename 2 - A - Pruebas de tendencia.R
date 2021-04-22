@@ -7,7 +7,7 @@ library(ggplot2)
 library(zoo)
 library(readr)
 library(readxl)
-library(forecast)
+library(forecast) # función ma
 library(TSA)
 library(funtimes)
 library(Kendall)
@@ -18,8 +18,7 @@ library(randtests)
 
 set.seed(223)
 data.frame(y = rnorm(150)) -> datos_simu
-datos_simu$y %>% 
-  zoo -> y
+datos_simu$y %>% zoo -> y
 
 y %>% 
   autoplot()+ 
@@ -28,14 +27,14 @@ y %>%
        caption = "Fuente: Google Trends")+
   theme_minimal()
 
-
 read_csv('vacunas.csv',skip=3,col_names=c("Fecha","Interes")) -> datos_vacunas
 datos_vacunas$Interes %>% 
   zoo(order.by = datos_vacunas$Fecha) -> Interes
 
 Interes %>% 
   autoplot()+ 
-  geom_line(color="dodgerblue3",lwd=2)+
+  geom_point()+
+  #geom_line(color="dodgerblue3",lwd=2)+
   labs(title = "Interés de búsqueda del término vacuna",
        caption = "Fuente: Google Trends")+
   theme_minimal()
@@ -46,7 +45,8 @@ datos_recuperados$Recuperados %>%
 
 Recuperados %>% 
   autoplot()+ 
-  geom_line(color="dodgerblue3",lwd=1)+
+  geom_point()+
+  #geom_line(color="dodgerblue3",lwd=1)+
   labs(title = "Número de personas recuperadas del COVID-19 en Perú",
        caption = "Fuente: MINSA")+
   theme_minimal()
@@ -75,13 +75,15 @@ datos_recuperados %>%
   geom_smooth(method = "lm")+
   theme_minimal()
 
-
-
 # Media móvil -------------------------------------------------------------
+
+r = c(1,2,4,5,7,9)
+ma(r, order = 2, centre = T)
+ma(r, order = 2, centre = F) # usaremos este
 
 (ma(datos_simu$y, order = 10, centre = F) %>% 
   zoo() -> movavg0)
-autoplot(cbind(y,movavg0) , facets = FALSE) +
+autoplot(cbind(y,movavg0), facets = F) +
   labs(title = "Serie de tiempo",
        y     = "y")+
   theme(legend.position="bottom") +
@@ -89,7 +91,7 @@ autoplot(cbind(y,movavg0) , facets = FALSE) +
                       values = c("steelblue2", "red")) +
   theme_minimal()
 
-(ma(datos_vacunas$Interes, order = 3, centre = F) %>% 
+(ma(datos_vacunas$Interes, order = 10, centre = F) %>% 
     zoo(order.by = datos_vacunas$Fecha) -> movavg1)
 autoplot(cbind(Interes,movavg1) , facets = FALSE) +
   labs(title = "Búsquedas del término vacuna",
@@ -109,12 +111,11 @@ autoplot(cbind(Recuperados,movavg2) , facets = FALSE) +
                       values = c("steelblue2", "red")) +
   theme_minimal()
 
-
 # Correlograma ------------------------------------------------------------
 
 y %>% 
   ts() %>% 
-  TSA::acf(type = "correlation", lag = 20, plot = FALSE) %>% 
+  TSA::acf(type = "correlation", lag = 40, plot = FALSE) %>% 
   autoplot() +
   theme_minimal()
 
