@@ -112,3 +112,6 @@ InteresFP$IM %>%
   wo %>% 
   summary
 
+datos_simu$y[-seq(123,150)] -> yy1
+datos_simu$y[-seq(1,28)] -> yy2
+x11();plot(yy1,yy2,pch=18)
