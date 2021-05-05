@@ -3,7 +3,7 @@
 
 library(tseries)
 library(aTSA)
-library(forecast)
+library(forecast) # función BoxCox.lambda, BoxCox
 library(TSA)
 library(MTS)
 
@@ -40,6 +40,9 @@ plot(y4,type="l")
 plot(y5,type="l")
 
 # Prueba KPSS -------------------------------------------------------------
+
+# H0: La serie SÍ es estacionaria
+# H1: La serie NO es estacionaria
 
 n = 1:300
 lag.tseries  = NULL
@@ -85,13 +88,18 @@ aTSA::stationary.test(y5,method = "kpss",lag.short=F)
 
 # Prueba ADF --------------------------------------------------------------
 
+# H0: La serie NO es estacionaria
+# H1: La serie SÍ es estacionaria
+
 tseries::adf.test(y0)
 aTSA::stationary.test(y0,method = "adf")
 
 tseries::adf.test(y1)
 stationary.test(y1,method = "adf")
 
-tseries::adf.test(y2)
+tseries::adf.test(y2, alternative = "explosive") #Type1
+tseries::adf.test(y2, alternative = "stationary") #Type3
+tseries::adf.test(y2) #Type3
 stationary.test(y2,method = "adf")
 
 tseries::adf.test(y3)
@@ -121,6 +129,9 @@ plot(y3,type="l")
 plot(BoxCox(y3,ly3),type="l")
 
 # Prueba McLeod Li --------------------------------------------------------
+
+# Ho: autocorrel_lag = 0
+# H1: autocorrel_lag != 0
 
 x11();par(mfrow=c(3,2))
 McLeod.Li.test(y=y0)
