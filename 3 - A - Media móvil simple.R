@@ -12,7 +12,7 @@ library(zoo)
 library(pracma)
 library(forecast)
 library(nortest)
-library(DescTools)
+library(DescTools) # funciones RMSE,MAPE,MAE
 
 # Lectura datos 1 ---------------------------------------------------------
 
@@ -53,7 +53,7 @@ kruskal.test(serie1 ~ cycle(serie1))
 # Cómo funciona
 # ~~~~~~~~~~~~~
 
-serie1 %>% movavg(n = 3, type="s")
+serie1 %>% movavg(n = 3, type="s") # Recomiendo
 serie1 %>% rollmean(k = 3)
 serie1 %>% ma(order = 3)
 serie1 %>% ma(order = 3, centre=FALSE)
@@ -70,7 +70,7 @@ serie1 %>% ma(order = 4, centre=FALSE)
 ntotal = length(serie1)  # longitud de la serie
 ntrain = 24 # longitud data de entrenamiento
 nvalid = 3  # longitud data de validación
-ntest  = 2  # longitud data de prueba
+ntest  = 3  # longitud data de prueba
 
 train  = serie1 %>% window(start = 1, end = 1+(ntrain-1)/7)
 valid  = serie1 %>% window(start = 1+(ntrain)/7, end = 1+(ntrain+nvalid-1)/7)
@@ -88,7 +88,7 @@ for(r in 2:12){
   mae[r-1]  = MAE(pred,valid, na.rm=T)
 }
 
-data.frame(r = 2:12, rmse, mape, mae)
+data.frame(r = 2:12, rmse, mape, mae) # decidimos que r=9
 
 y.obs = ts(c(train,valid,NA))
 y.sua = movavg(ts(c(train,valid)), n=9, type="s")
@@ -96,7 +96,7 @@ y.est = ts(c(NA,y.sua))
 
 data.frame(y.obs,y.est)
 
-autoplot(ts.union(y.obs,y.est),
+x11();autoplot(ts.union(y.obs,y.est),
          facets = FALSE) +
   geom_point()+
   labs(x       = "Día", 
@@ -112,7 +112,10 @@ autoplot(ts.union(y.obs,y.est),
 resid = y.obs - y.est
 
 resid %>% mean(na.rm=T)
-resid %>% t.test
+resid %>% t.test # PH de la media: H0: mu_error = 0
+
+resid[-c(1,28)] %>% archTest(lag=10)
+McLeod.Li.test(y = resid[-c(1,28)])
 
 autoplot(TSA::acf(resid[-c(1,28)], lag = 21, plot = F))
 
@@ -152,8 +155,16 @@ sqrt(mean(pred.resid^2, na.rm=T))
 # Predicción
 # ~~~~~~~~~~
 
-y.h1    = y.est[length(y.est)]
-valorz  = qnorm(0.975)
+y.suavizado = movavg(serie1, n=9, type="s")
+
+
+y.obs = ts(c(serie1,NA))
+y.est = ts(c(NA,y.suavizado))
+data.frame(y.obs,y.est)
+residual = y.obs - y.est
+
+y.h1    = y.suavizado[length(y.suavizado)]
+valorz  = qnorm(0.975) # requiere que se haya verificado previamente normalidad
 sigma2e = var(resid, na.rm = T)
 LIPR    = y.h1 - valorz*sqrt(sigma2e/r)
 LSPR    = y.h1 + valorz*sqrt(sigma2e/r)
