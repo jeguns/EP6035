@@ -9,7 +9,7 @@ library(funtimes) # función notrend_test
 library(trend) # función cs.test
 library(randtests) # función cox.stuart.test
 library(zoo)
-library(pracma)
+library(smooth) # Usaremos sma en vez de pracma
 library(forecast)
 library(nortest)
 library(DescTools) # funciones RMSE,MAPE,MAE
@@ -48,20 +48,10 @@ serie1 %>% monthplot
 boxplot(serie1 ~ cycle(serie1), col = "gold")
 kruskal.test(serie1 ~ cycle(serie1))
 
-# Media móvil  ------------------------------------------------------------
+# Usando función sma ------------------------------------------------------
 
-# Cómo funciona
-# ~~~~~~~~~~~~~
-
-serie1 %>% movavg(n = 3, type="s") # Recomiendo
-serie1 %>% rollmean(k = 3)
-serie1 %>% ma(order = 3)
-serie1 %>% ma(order = 3, centre=FALSE)
-
-serie1 %>% movavg(n = 4, type="s")
-serie1 %>% rollmean(k = 4)
-serie1 %>% ma(order = 4)
-serie1 %>% ma(order = 4, centre=FALSE)
+1:10 %>% sma(order = 3, intervals="parametric",h=3) -> prueba
+data.frame(variable = 1:10, prueba$fitted)
 
 # Data split
 # ~~~~~~~~~~
@@ -77,13 +67,13 @@ valid  = serie1 %>% window(start = 1+(ntrain)/7, end = 1+(ntrain+nvalid-1)/7)
 test   = serie1 %>% window(start = 1+(ntrain+nvalid)/7)
 
 # Tuning: r
-# ~~~~~~~~~~
+# ~~~~~~~~~~ 
 
 rmse = mape = mae = NULL
 for(r in 2:12){
-  fit       = movavg(train, n = r, type="s")
-  pred      = rep(fit[length(fit)],nvalid)
-  rmse[r-1] = DescTools::RMSE(pred,valid, na.rm=T) 
+  fit       = sma(train, order = r, h = nvalid)
+  pred      = fit$forecast
+  rmse[r-1] = DescTools::RMSE(pred,valid, na.rm=T)
   mape[r-1] = DescTools::MAPE(pred,valid, na.rm=T)
   mae[r-1]  = DescTools::MAE(pred,valid, na.rm=T)
 }
@@ -93,13 +83,12 @@ data.frame(r = 2:12, rmse, mape, mae) # decidimos que r=9
 # Trabajamos con los datos de train + valid
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-y.obs = ts(c(train,valid,NA))
-y.sua = movavg(ts(c(train,valid)), n=9, type="s")
-y.est = ts(c(NA,y.sua))
+y.obs = ts(c(train,valid))
+y.est = sma(c(train,valid), order = 9)$fitted
 data.frame(y.obs,y.est)
 
 x11();autoplot(ts.union(y.obs,y.est),
-         facets = FALSE) +
+               facets = FALSE) +
   geom_point()+
   labs(x       = "Día", 
        y       = "Número de pruebas", 
@@ -116,10 +105,10 @@ resid = y.obs - y.est
 resid %>% mean(na.rm=T)
 resid %>% t.test # PH de la media: H0: mu_error = 0
 
-resid[-c(1,28)] %>% archTest(lag=10)
-McLeod.Li.test(y = resid[-c(1,28)])
+resid %>% archTest(lag=10)
+McLeod.Li.test(y = resid)
 
-autoplot(TSA::acf(resid[-c(1,28)], lag = 21, plot = F))
+autoplot(TSA::acf(resid, lag = 21, plot = F))
 
 resid %>% ggplot(aes(sample=resid))+
   stat_qq() +
@@ -141,7 +130,8 @@ resid %>% ks.test("pnorm")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 test
-pred.test  = rep(y.est[length(y.est)], length(test))
+pred.test  = ts(sma(c(train,valid), order = 9, h = ntest)$forecast,
+                start=c(4,7), frequency = 7)
 pred.resid = test - pred.test
 data.frame(test,pred.test,pred.resid)
 pred.resid %>% autoplot
@@ -158,22 +148,5 @@ sqrt(mean(pred.resid^2, na.rm=T))
 # Predicción
 # ~~~~~~~~~~
 
-y.suavizado = movavg(serie1, n=9, type="s")
-y.obs = ts(c(serie1,NA))
-y.est = ts(c(NA,y.suavizado))
-data.frame(y.obs,y.est)
-residual = y.obs - y.est
-
-y.h1    = y.suavizado[length(y.suavizado)]
-valorz  = qnorm(0.975) # requiere que se haya verificado previamente normalidad
-sigma2e = var(resid, na.rm = T)
-LIPR    = y.h1 - valorz*sqrt(sigma2e/9)
-LSPR    = y.h1 + valorz*sqrt(sigma2e/9)
-IPR     = data.frame("Lim Inferior"   = LIPR, 
-                     "Estim Puntual"  = y.h1,
-                     "Lim Superior"   = LSPR)
-IPR
-
-
-
-
+prediccion = sma(serie1, order = 9, h = 3, interval = "p", level = .95)
+data.frame(prediccion$lower, prediccion$forecast, prediccion$upper)
