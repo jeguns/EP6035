@@ -67,7 +67,7 @@ rmse = mape = mae = theil = NULL
 alfa = seq(0.001,0.999, by = 0.001)
 for(i in seq_along(alfa)){
   fit     = HoltWinters(train, alpha = alfa[i], beta = F, gamma = F)
-  pred    = predict(fit, n.ahead = 4)
+  pred    = predict(fit, n.ahead = 3) 
   rmse[i] = DescTools::RMSE(pred,valid, na.rm=T) # accuracy(pred,valid)[2]
   mae[i]  = DescTools::MAE(pred,valid, na.rm=T)  # accuracy(pred,valid)[3]
   mape[i] = DescTools::MAPE(pred,valid, na.rm=T) # accuracy(pred,valid)[5]
