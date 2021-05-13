@@ -43,7 +43,6 @@ serie2 %>% cox.stuart.test(alternative = c("left.sided"))
 serie2 %>% cox.stuart.test(alternative = c("right.sided"))
 notrend_test(serie2, test = "WAVK")$p.value
 
-
 # Suavización exponencial de Holt -----------------------------------------
 
 # Cómo funciona
@@ -146,6 +145,7 @@ accuracy(test,pred.test)
 # Predicción
 # ~~~~~~~~~~
 
-mod.comp = HoltWinters(serie2, alpha = alfa.opt, beta = beta.opt, gamma = F) 
+mod.comp = HoltWinters(serie2, alpha = alfa.opt, beta = beta.opt, 
+                       gamma = F) 
 predict(mod.comp, n.ahead=7, prediction.interval = T)
-
+forecast(mod.comp, h=7)
