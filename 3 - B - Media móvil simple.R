@@ -102,9 +102,19 @@ x11();autoplot(ts.union(y.obs,y.est),
 
 resid = y.obs - y.est
 
+# cov(y.obs,y.est)
+# var(y.obs)
+# var(y.est)
+
+# matrix(c(14620721,9777794,9777794,45220813),nrow=2)->matriz
+# matriz %>% det
+# cor(y.obs,resid)
+
 resid %>% mean(na.rm=T)
 resid %>% t.test # PH de la media: H0: mu_error = 0
 
+library(MTS)
+library(TSA)
 resid %>% archTest(lag=10)
 McLeod.Li.test(y = resid)
 
@@ -124,7 +134,7 @@ resid %>% qplot(geom = "histogram",
 
 resid %>% shapiro.test
 resid %>% ad.test
-resid %>% ks.test("pnorm")
+#resid %>% ks.test("pnorm")
 
 # Comparando con el data test
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,3 +160,5 @@ sqrt(mean(pred.resid^2, na.rm=T))
 
 prediccion = sma(serie1, order = 9, h = 3, interval = "p", level = .95)
 data.frame(prediccion$lower, prediccion$forecast, prediccion$upper)
+
+

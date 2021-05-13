@@ -44,9 +44,11 @@ ts(c(3,2,4,3,2,3,3,2,3,3,4,3,3,2,4)) %>%
 serie1 %>% 
   HoltWinters(alpha = NULL, beta = FALSE, gamma = FALSE) -> mod.com
 
-(serie1[-1] - mod.com$fitted[,2] -> resi.com)
+(serie1[-1] - mod.com$fitted[,1] -> resi.com)
 
-(RMSE(serie1,mod.com$fitted[,2]) -> rmse.com) # 6235.781
+(RMSE(serie1,mod.com$fitted[,1]) -> rmse.com) # 6235.781
+
+forecast(mod.com, h = 3)
 
 # Data split
 # ~~~~~~~~~~
@@ -130,14 +132,14 @@ resid %>% qplot(geom = "histogram",
 
 resid %>% shapiro.test
 resid %>% ad.test
-resid %>% ks.test("pnorm")
+#resid %>% ks.test("pnorm")
 
 # Comparando con el data test
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 test
 (pred.test   = predict(mod.val, n.ahead = ntest))
-data.frame(test,pred.test,pred.resid=test-pred.test)
+data.frame(test,pred.test,resid=test-pred.test)
 DescTools::RMSE(test,pred.test, na.rm=T)
 accuracy(test,pred.test)
 
