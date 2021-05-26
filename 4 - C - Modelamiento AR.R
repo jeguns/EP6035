@@ -1,0 +1,117 @@
+
+# Paquetes ----------------------------------------------------------------
+
+library(readxl)
+library(dplyr)
+library(tseries)
+library(aTSA)
+library(forecast)
+library(TSA)
+library(MTS)
+
+# Lectura de datos --------------------------------------------------------
+
+read.delim("TMIN2021.txt") -> datos1
+datos1$temp %>% ts() -> serie1
+
+# Identificación ----------------------------------------------------------
+
+serie1 %>% aTSA::stationary.test(method = "kpss",lag.short=T)
+serie1 %>% aTSA::stationary.test(method = "kpss",lag.short=F)
+serie1 %>% aTSA::stationary.test(method = "adf")
+serie1 %>% aTSA::stationary.test(method = "pp",lag.short=F)
+serie1 %>% aTSA::stationary.test(method = "pp",lag.short=T)
+serie1 %>% BoxCox.lambda()
+serie1 %>% archTest()
+serie1 %>% McLeod.Li.test(y=.)
+
+serie1 %>% diff %>% aTSA::stationary.test(method = "kpss",lag.short=T)
+serie1 %>% diff %>% aTSA::stationary.test(method = "kpss",lag.short=F)
+serie1 %>% diff %>% aTSA::stationary.test(method = "adf")
+serie1 %>% diff %>% aTSA::stationary.test(method = "pp",lag.short=F)
+serie1 %>% diff %>% aTSA::stationary.test(method = "pp",lag.short=T)
+serie1 %>% diff %>% BoxCox.lambda()
+serie1 %>% diff %>% archTest()
+serie1 %>% diff %>% McLeod.Li.test(y=.)
+
+serie1 %>% diff %>% TSA::acf(type = "correlation", lag = 28)
+serie1 %>% diff %>% TSA::acf(type = "partial", lag = 28)
+
+
+# Modelamiento ------------------------------------------------------------
+
+ntotal = length(serie1)
+ntrain = 20
+h      = 4
+medidas1 = medidas2 = medidas3 = medidas4 = NULL
+
+for(i in 0:(ntotal-ntrain-h))
+{
+  training <- serie1 %>%  window(start = 1, end = ntrain + i)
+  testing  <- serie1 %>%  window(start = ntrain + i + 1, end= ntrain + i + 4)
+  modelo1  <- training %>% Arima(order=c(0,1,0))
+  modelo2  <- training %>% Arima(order=c(1,1,0))
+  modelo3  <- training %>% Arima(order=c(0,0,0))
+  modelo4  <- training %>% Arima(order=c(3,3,3))
+  pred1    <- modelo1 %>% forecast(h=4)
+  pred2    <- modelo2 %>% forecast(h=4)
+  pred3    <- modelo3 %>% forecast(h=4)
+  pred4    <- modelo4 %>% forecast(h=4)
+  medidas1 <- rbind(medidas1, accuracy(pred1,testing)[2,])
+  medidas2 <- rbind(medidas2, accuracy(pred2,testing)[2,])
+  medidas3 <- rbind(medidas3, accuracy(pred3,testing)[2,])
+  medidas4 <- rbind(medidas4, accuracy(pred4,testing)[2,])  
+  #accuracy(pred$mean,testing)[2]
+  #accuracy(pred$fitted,training)[2]
+}
+
+medidas1 %>% colMeans
+medidas2 %>% colMeans
+medidas3 %>% colMeans
+medidas4 %>% colMeans
+
+arima010 <- function(x, h){forecast(Arima(x, order=c(0,1,0)), h=h)}
+arima110 <- function(x, h){forecast(Arima(x, order=c(1,1,0)), h=h)}
+arima000 <- function(x, h){forecast(Arima(x, order=c(0,0,0)), h=h)}
+arima333 <- function(x, h){forecast(Arima(x, order=c(3,3,3)), h=h)}
+
+e010 <- tsCV(serie1, arima010, h=4, window = 20)
+e110 <- tsCV(serie1, arima110, h=4, window = 20)
+e000 <- tsCV(serie1, arima000, h=4, window = 20)
+e333 <- tsCV(serie1, arima333, h=4, window = 20)
+
+me = mae = mape = rmse = NULL
+for(i in 1:nrow(e010)){
+  me[i]   = e010[i,] %>% mean
+  rmse[i] = e010[i,]^2 %>% mean %>% sqrt
+  mae[i]  = e010[i,] %>% abs %>% mean
+}
+(data.frame(ME = me, RMSE = rmse, MAE = mae) %>% filter(!is.na(rmse)) -> medidas_1)
+medidas1
+
+medidas_1 %>% colMeans
+medidas1 %>% colMeans
+
+
+# Diagnóstico -------------------------------------------------------------
+
+serie1 %>% Arima(order = c(1,1,0)) -> modelofinal
+modelofinal %>% residuals -> residuales
+
+residuales %>% autoplot + geom_hline(yintercept=0,col="red") + theme_bw()
+residuales %>% shapiro.test()
+residuales %>% TSA::acf()
+residuales %>% McLeod.Li.test(y=.)
+residuales %>% BoxCox.lambda()
+residuales %>% aTSA::stationary.test(method="kpss")
+residuales %>% aTSA::stationary.test(method="adf")
+
+
+# Predicciones ------------------------------------------------------------
+
+modelofinal %>% forecast(h=4)
+modelofinal %>% forecast(h=4) %>% autoplot +
+  labs(x = "Día",
+       y = "Temperatura") + 
+  theme_minimal()
+
