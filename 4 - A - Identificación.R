@@ -11,15 +11,22 @@ library(MTS)
 
 # Lectura de datos --------------------------------------------------------
 
+# TMIN2021
+# Temperatura mínima diaria registrada en la estación von Humboldt, en la
+# UNALM, durante el mes de abril 2021
+
+# SINOPHARM
+# Número diario de dosis de SINOPHARM aplicadas a nivel nacional
+
 read.delim("TMIN2021.txt") -> datos1
 read_excel("SINOPHARM.xlsx") -> datos2
 
-datos1$temp %>% plot(type="l",col=5, lwd=2, main = "PCR")
-datos2$n %>% plot(type="l",col=4, lwd=2, main = "Pfizer")
+datos1$temp %>% plot(type="l",col=5, lwd=2, main = "Temp minima")
+datos2$n %>% plot(type="l",col=4, lwd=2, main = "Sinopharm")
 
 # Operadores --------------------------------------------------------------
 
-datos1$temp  %>% dplyr::lag(n=2)
+datos1$temp %>% dplyr::lag(n=2)
 cbind(datos1$temp,
       datos1$temp  %>% dplyr::lag(n=1),
       datos1$temp  %>% dplyr::lag(n=2))
@@ -33,7 +40,7 @@ cbind(datos1$temp,
       datos1$temp  %>% dplyr::lead(n=2))
 
 datos1$temp %>% diff
-datos2$n %>% diff
+datos2$n %>% diff 
 
 x11();par(mfrow=c(2,2))
 datos1$temp %>% plot(type="l",col=5, lwd=2, main = "Temp. mínima")
@@ -49,7 +56,7 @@ serie1 %>% TSA::acf(type = "partial", lag = 28)
 serie1 %>% TSA::acf(type = "correlation", lag = 28, plot=F)
 serie1 %>% TSA::acf(type = "partial", lag = 28, plot=F)
 
-datos2$n %>% ts(frequency = 7) -> serie2
+datos2$n %>% ts() -> serie2
 serie2 %>% TSA::acf(type = "correlation", lag = 28)
 serie2 %>% TSA::acf(type = "partial", lag = 28)
 serie2 %>% TSA::acf(type = "correlation", lag = 28, plot=F)
