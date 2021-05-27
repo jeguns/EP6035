@@ -34,9 +34,11 @@ serie1 %>% diff %>% BoxCox.lambda()
 serie1 %>% diff %>% archTest()
 serie1 %>% diff %>% McLeod.Li.test(y=.)
 
-serie1 %>% diff %>% TSA::acf(type = "correlation", lag = 28)
-serie1 %>% diff %>% TSA::acf(type = "partial", lag = 28)
+# serie1 %>% TSA::acf(type = "correlation", lag = 28) # no
+# serie1 %>% TSA::acf(type = "partial", lag = 28) # no
 
+x11();serie1 %>% diff %>% TSA::acf(type = "correlation", lag = 28)
+x11();serie1 %>% diff %>% TSA::acf(type = "partial", lag = 28)
 
 # Modelamiento ------------------------------------------------------------
 
@@ -45,8 +47,7 @@ ntrain = 20
 h      = 4
 medidas1 = medidas2 = medidas3 = medidas4 = NULL
 
-for(i in 0:(ntotal-ntrain-h))
-{
+for(i in 0:(ntotal-ntrain-h)){
   training <- serie1 %>%  window(start = 1, end = ntrain + i)
   testing  <- serie1 %>%  window(start = ntrain + i + 1, end= ntrain + i + 4)
   modelo1  <- training %>% Arima(order=c(0,1,0))
@@ -92,7 +93,6 @@ medidas1
 medidas_1 %>% colMeans
 medidas1 %>% colMeans
 
-
 # Diagnóstico -------------------------------------------------------------
 
 serie1 %>% Arima(order = c(1,1,0)) -> modelofinal
@@ -105,7 +105,6 @@ residuales %>% McLeod.Li.test(y=.)
 residuales %>% BoxCox.lambda()
 residuales %>% aTSA::stationary.test(method="kpss")
 residuales %>% aTSA::stationary.test(method="adf")
-
 
 # Predicciones ------------------------------------------------------------
 
