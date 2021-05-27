@@ -4,14 +4,14 @@ library(ggfortify)
 
 # AR(1) con phi = 0.85 ----------------------------------------------------
 
-set.seed(654)
+# ARIMA(1,0,0) con phi = 0.85
 
 phi    = 0.85
-sigma  = sqrt(4)
+sigma  = 2
 
 set.seed(78)
 arima.sim(model=list(ar=c(phi)), n=150, sd = sigma) -> Y.AR1A  # AR(1) con phi = 0.85
-#  arima.sim(list(order = c(1,0,0), ar= phi), n = 150) -> Y.AR1A # AR(1) con phi = 0.85
+#arima.sim(list(order = c(1,0,0), ar= phi), n = 150) -> Y.AR1A # AR(1) con phi = 0.85
 Y.AR1A %>% 
   autoplot(type="l") + 
   geom_hline(yintercept = 0)
@@ -34,7 +34,7 @@ Y.AR1A %>%
 Y.AR1A %>% 
   TSA::acf(type="partial", lag = 50, plot = FALSE, main = "Función de autocorrelación parcial")
 
-lm(Y.AR1~zlag(Y.AR1A))
+lm(Y.AR1A~zlag(Y.AR1A))
 
 
 # AR(1) con phi = 0.55 ----------------------------------------------------
