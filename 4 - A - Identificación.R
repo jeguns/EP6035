@@ -108,3 +108,5 @@ serie1 %>% diff %>% TSA::acf(type = "partial", lag = 28)
 serie2 %>% diff %>% TSA::acf(type = "correlation", lag = 28)
 serie2 %>% diff %>% TSA::acf(type = "partial", lag = 28)
 
+# Yt - Y{t-1} = e
+# Y_t = Y_{t-1} + e
