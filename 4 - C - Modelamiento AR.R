@@ -8,6 +8,9 @@ library(aTSA)
 library(forecast)
 library(TSA)
 library(MTS)
+library(ggplot2)
+library(sweep)
+library(tidyquant)
 
 # Lectura de datos --------------------------------------------------------
 
@@ -54,16 +57,14 @@ for(i in 0:(ntotal-ntrain-h)){
   modelo2  <- training %>% Arima(order=c(1,1,0))
   modelo3  <- training %>% Arima(order=c(0,0,0))
   modelo4  <- training %>% Arima(order=c(3,3,3))
-  pred1    <- modelo1 %>% forecast(h=4)
-  pred2    <- modelo2 %>% forecast(h=4)
-  pred3    <- modelo3 %>% forecast(h=4)
-  pred4    <- modelo4 %>% forecast(h=4)
+  pred1    <- modelo1 %>% forecast::forecast(h=4)
+  pred2    <- modelo2 %>% forecast::forecast(h=4)
+  pred3    <- modelo3 %>% forecast::forecast(h=4)
+  pred4    <- modelo4 %>% forecast::forecast(h=4)
   medidas1 <- rbind(medidas1, accuracy(pred1,testing)[2,])
   medidas2 <- rbind(medidas2, accuracy(pred2,testing)[2,])
   medidas3 <- rbind(medidas3, accuracy(pred3,testing)[2,])
   medidas4 <- rbind(medidas4, accuracy(pred4,testing)[2,])  
-  #accuracy(pred$mean,testing)[2]
-  #accuracy(pred$fitted,training)[2]
 }
 
 medidas1 %>% colMeans
@@ -93,12 +94,32 @@ medidas1
 medidas_1 %>% colMeans
 medidas1 %>% colMeans
 
-# Diagnóstico -------------------------------------------------------------
+# Escriba el modelo final:
 
 serie1 %>% Arima(order = c(1,1,0)) -> modelofinal
+
+modelofinal %>% sw_tidy()
+
+# Diagnóstico -------------------------------------------------------------
+
 modelofinal %>% residuals -> residuales
 
-residuales %>% autoplot + geom_hline(yintercept=0,col="red") + theme_bw()
+residuales %>% autoplot + 
+  geom_hline(yintercept=0,col="red") + 
+  labs(title = "Residuales del modelo AR(1,1,0)", x = "")+
+  theme_bw()
+
+modelofinal %>% sw_augment() %>% select(.resid) -> residuales_tibble
+
+modelofinal %>%
+  sw_augment() %>% 
+  ggplot(aes(x = index, y = .resid)) +
+  geom_hline(yintercept = 0, color = "grey40") +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess") +
+  labs(title = "Residuales del modelo ARIMA(1,1,0)", x = "") + 
+  theme_minimal()
+
 residuales %>% shapiro.test()
 residuales %>% TSA::acf()
 residuales %>% McLeod.Li.test(y=.)
@@ -106,11 +127,28 @@ residuales %>% BoxCox.lambda()
 residuales %>% aTSA::stationary.test(method="kpss")
 residuales %>% aTSA::stationary.test(method="adf")
 
+modelofinal %>% sw_glance()
+
 # Predicciones ------------------------------------------------------------
 
 modelofinal %>% forecast(h=4)
+
 modelofinal %>% forecast(h=4) %>% autoplot +
   labs(x = "Día",
        y = "Temperatura") + 
   theme_minimal()
 
+modelofinal %>% forecast(h=4) %>% sw_sweep() %>% View
+
+modelofinal %>% 
+  forecast(h=4) %>% 
+  sw_sweep() %>%
+  ggplot(aes(x = index, y = value, color = key)) +
+  geom_ribbon(aes(ymin = lo.95, ymax = hi.95), 
+              fill = "#D5DBFF", color = NA, size = 0) +
+  geom_ribbon(aes(ymin = lo.80, ymax = hi.80, fill = key), 
+              fill = "#596DD5", color = NA, size = 0, alpha = 0.8) +
+  geom_line(size = 1) +
+  labs(title = "Predicción Temperatura Mínima", x = "", y = "°C") +
+  scale_color_tq() +
+  theme_tq()
