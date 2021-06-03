@@ -5,12 +5,12 @@ library(readxl)
 library(dplyr)
 library(tseries)
 library(aTSA)
-library(forecast)
+library(forecast) # función tsCV
 library(TSA)
 library(MTS)
 library(ggplot2)
-library(sweep)
-library(tidyquant)
+library(sweep) # función sw_tidy, sw_augment, sw_glance, sw_sweep
+library(tidyquant) # función scale_color_tq(), theme_tq()
 
 # Lectura de datos --------------------------------------------------------
 
@@ -72,6 +72,8 @@ medidas2 %>% colMeans
 medidas3 %>% colMeans
 medidas4 %>% colMeans
 
+# haciéndolo de otra manera
+
 arima010 <- function(x, h){forecast(Arima(x, order=c(0,1,0)), h=h)}
 arima110 <- function(x, h){forecast(Arima(x, order=c(1,1,0)), h=h)}
 arima000 <- function(x, h){forecast(Arima(x, order=c(0,0,0)), h=h)}
@@ -89,23 +91,28 @@ for(i in 1:nrow(e010)){
   mae[i]  = e010[i,] %>% abs %>% mean
 }
 (data.frame(ME = me, RMSE = rmse, MAE = mae) %>% filter(!is.na(rmse)) -> medidas_1)
-medidas1
 
 medidas_1 %>% colMeans
 medidas1 %>% colMeans
+
 
 # Escriba el modelo final:
 
 serie1 %>% Arima(order = c(1,1,0)) -> modelofinal
 
+modelofinal
+
 modelofinal %>% sw_tidy()
+
+modelofinal %>% sw_glance()
 
 # Diagnóstico -------------------------------------------------------------
 
 modelofinal %>% residuals -> residuales
 
-residuales %>% autoplot + 
+residuales %>% autoplot() + 
   geom_hline(yintercept=0,col="red") + 
+  geom_point()+
   labs(title = "Residuales del modelo AR(1,1,0)", x = "")+
   theme_bw()
 
@@ -120,14 +127,14 @@ modelofinal %>%
   labs(title = "Residuales del modelo ARIMA(1,1,0)", x = "") + 
   theme_minimal()
 
+residuales %>% hist
 residuales %>% shapiro.test()
 residuales %>% TSA::acf()
 residuales %>% McLeod.Li.test(y=.)
+residuales %>% archTest()
 residuales %>% BoxCox.lambda()
 residuales %>% aTSA::stationary.test(method="kpss")
 residuales %>% aTSA::stationary.test(method="adf")
-
-modelofinal %>% sw_glance()
 
 # Predicciones ------------------------------------------------------------
 
@@ -138,7 +145,7 @@ modelofinal %>% forecast(h=4) %>% autoplot +
        y = "Temperatura") + 
   theme_minimal()
 
-modelofinal %>% forecast(h=4) %>% sw_sweep() %>% View
+modelofinal %>% forecast(h=4) %>% sw_sweep()
 
 modelofinal %>% 
   forecast(h=4) %>% 
