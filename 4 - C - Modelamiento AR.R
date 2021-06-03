@@ -10,7 +10,7 @@ library(TSA)
 library(MTS)
 library(ggplot2)
 library(sweep) # función sw_tidy, sw_augment, sw_glance, sw_sweep
-library(tidyquant) # función scale_color_tq(), theme_tq()
+library(tidyquant) # función scale_color_tq()
 
 # Lectura de datos --------------------------------------------------------
 

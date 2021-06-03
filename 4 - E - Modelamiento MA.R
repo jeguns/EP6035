@@ -4,6 +4,9 @@ library(readxl)
 datos = read_excel('RecuperadosAbril.xlsx')
 ts(datos$Recuperados) -> serie2
 
+
+# Identificación ----------------------------------------------------------
+
 serie2 %>% aTSA::stationary.test(method = "kpss",lag.short=T)
 serie2 %>% aTSA::stationary.test(method = "kpss",lag.short=F)
 serie2 %>% aTSA::stationary.test(method = "adf")
@@ -22,10 +25,15 @@ serie2 %>% diff %>% BoxCox.lambda()
 serie2 %>% diff %>% archTest()
 serie2 %>% diff %>% McLeod.Li.test(y=.)
 
+serie2 %>% diff %>% TSA::acf(type = "correlation", lag = 28)
+x11();serie2 %>% diff %>% TSA::acf(type = "partial", lag = 28)
+
+
+# Modelamiento ------------------------------------------------------------
 
 ntotal = length(serie2)
 ntrain = 15
-h      = 4
+h      = 4 # en función al horizonte de interés
 medidas1 = medidas2 = medidas3 = medidas4 = NULL
 
 for(i in 0:(ntotal-ntrain-h)){
@@ -33,7 +41,7 @@ for(i in 0:(ntotal-ntrain-h)){
   testing  <- serie2 %>%  window(start = ntrain + i + 1, end= ntrain + i + 4)
   modelo1  <- training %>% Arima(order=c(0,1,0))
   modelo2  <- training %>% Arima(order=c(0,1,1))
-  modelo3  <- training %>% Arima(order=c(0,1,2))
+  modelo3  <- training %>% Arima(order=c(1,1,0))
   modelo4  <- training %>% Arima(order=c(3,3,3))
   pred1    <- modelo1 %>% forecast::forecast(h=4)
   pred2    <- modelo2 %>% forecast::forecast(h=4)
@@ -52,10 +60,9 @@ medidas4 %>% colMeans
 
 # Escriba el modelo final:
 
-serie2 %>% Arima(order = c(0,1,1)) -> modelofinal
-
+serie2 %>% Arima(order = c(0,1,0)) -> modelofinal
+modelofinal
 modelofinal %>% sw_tidy()
-
 
 # Diagnóstico -------------------------------------------------------------
 
