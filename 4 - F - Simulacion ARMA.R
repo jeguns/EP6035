@@ -1,7 +1,22 @@
 
 
+library(readxl)
+library(dplyr)
+library(tseries)
+library(aTSA)
+library(forecast)
 library(TSA)
-library(ggfortify)
+library(MTS)
+library(sweep)
+library(ggplot2)
+library(gridExtra)
+library(tidyquant)
+library(dplyr)
+library(tseries)
+library(aTSA)
+library(forecast)
+library(TSA)
+library(MTS)
 
 # ARIMA(1,0,1) ------------------------------------------------------------
 
