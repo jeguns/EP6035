@@ -67,3 +67,4 @@ Y2 %>% diff %>% diff %>%
 Y2 %>% diff %>% diff %>%
   TSA::acf(type="partial", lag = 50, plot = TRUE, main = "Función de autocorrelación parcial")
 
+sd
