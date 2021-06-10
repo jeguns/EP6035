@@ -46,16 +46,20 @@ Y1 %>%
 Y1 %>% 
   TSA::acf(type="partial", lag = 50, plot = TRUE, main = "Función de autocorrelación parcial")
 
-# ARIMA(2,1,2) ------------------------------------------------------------
+# ARIMA(2,2,2) ------------------------------------------------------------
 
 phi    = c(0.65,0.2)
 theta  = c(0.4,-0.9)
-sigma  = 1
+sigma  = 10
 
-set.seed(489)
-arima.sim(list(order = c(2,2,2), ar = phi, ma = theta), n = 150) -> Y2
+arima.sim(list(order = c(2,2,2), ar = phi, ma = theta), 
+          n = 150,
+          sd = sigma) -> Y2
 
 Y2 %>% 
+  autoplot(type="l") 
+
+Y2 %>% diff %>% 
   autoplot(type="l") 
 
 Y2 %>% aTSA::stationary.test(method = "kpss",lag.short=T)
@@ -82,5 +86,5 @@ Y2 %>% diff %>% diff %>%
 Y2 %>% diff %>% diff %>%
   TSA::acf(type="partial", lag = 50, plot = TRUE, main = "Función de autocorrelación parcial")
 
-
+t_stat(Arima(Y2, order=c(2,2,2)))
 
