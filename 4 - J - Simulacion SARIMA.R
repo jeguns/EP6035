@@ -56,7 +56,7 @@ serie7 %>% diff %>% aTSA::stationary.test(method = "adf")
 serie7 %>% diff %>% aTSA::stationary.test(method = "pp",lag.short=F)
 serie7 %>% diff %>% aTSA::stationary.test(method = "pp",lag.short=T)
 serie7 %>% diff %>% BoxCox.lambda()
-serie7 %>% diff %>% acf2(72)
+serie7 %>% diff %>% acf2(72) # SARIMA(0,1,0)x(2,0,0)[4]
 
 ntotal = length(serie7)
 ntrain = 100
@@ -67,18 +67,18 @@ medidas7 = medidas8 = medidas9 = medidas10 = medidas11 = medidas12 = NULL
 for(i in 0:(ntotal-ntrain-h)){
   training <- serie7 %>%  window(start = 1, end = ntrain/4 + i/4)
   testing  <- serie7 %>%  window(start = ntrain/4  + i/4 + 1/4, end= ntrain/4 + i/4 + 8/4)
-  modelo1  <- training %>% Arima(order=c(0,1,0),seasonal=c(2,1,0)) # PACF se trunca en 2
-  modelo2  <- training %>% Arima(order=c(1,1,1),seasonal=c(2,1,0)) # auto.arima
-  modelo3  <- training %>% Arima(order=c(0,1,0),seasonal=c(3,1,0)) # propuesto P+1 
-  modelo4  <- training %>% Arima(order=c(0,1,0),seasonal=c(1,1,0)) # propuesto P-1
-  modelo5  <- training %>% Arima(order=c(0,1,0),seasonal=c(2,1,1)) # propuesto Q+1 
-  modelo6  <- training %>% Arima(order=c(1,1,0),seasonal=c(2,1,0)) # propuesto p+1
-  modelo7  <- training %>% Arima(order=c(0,1,1),seasonal=c(2,1,0)) # propuesto q+1
-  modelo8  <- training %>% Arima(order=c(1,1,1),seasonal=c(3,1,0)) # auto.arima P+1
-  modelo9  <- training %>% Arima(order=c(1,1,1),seasonal=c(1,1,1)) # auto.arima P-1
-  modelo10  <- training %>% Arima(order=c(1,1,1),seasonal=c(2,1,1)) # auto.arima Q+1
-  modelo11  <- training %>% Arima(order=c(2,1,1),seasonal=c(2,1,0)) # auto.arima p+1
-  modelo12  <- training %>% Arima(order=c(1,1,2),seasonal=c(2,1,0)) # auto.arima q+1
+  modelo1  <- training %>% Arima(order=c(0,1,0),seasonal=c(2,0,0)) # propuesto PACF se trunca en 2
+  modelo2  <- training %>% Arima(order=c(1,1,1),seasonal=c(2,0,0)) # auto.arima
+  modelo3  <- training %>% Arima(order=c(0,1,0),seasonal=c(3,0,0)) # propuesto P+1 
+  modelo4  <- training %>% Arima(order=c(0,1,0),seasonal=c(1,0,0)) # propuesto P-1
+  modelo5  <- training %>% Arima(order=c(0,1,0),seasonal=c(2,0,1)) # propuesto Q+1 
+  modelo6  <- training %>% Arima(order=c(1,1,0),seasonal=c(2,0,0)) # propuesto p+1
+  modelo7  <- training %>% Arima(order=c(0,1,1),seasonal=c(2,0,0)) # propuesto q+1
+  #modelo8  <- training %>% Arima(order=c(1,1,1),seasonal=c(3,0,0)) # auto.arima P+1
+  modelo9  <- training %>% Arima(order=c(1,1,1),seasonal=c(1,0,1)) # auto.arima P-1
+  modelo10  <- training %>% Arima(order=c(1,1,1),seasonal=c(2,0,1)) # auto.arima Q+1
+  modelo11  <- training %>% Arima(order=c(2,1,1),seasonal=c(2,0,0)) # auto.arima p+1
+  modelo12  <- training %>% Arima(order=c(1,1,2),seasonal=c(2,0,0)) # auto.arima q+1
   pred1    <- modelo1 %>% forecast::forecast(h=8)
   pred2    <- modelo2 %>% forecast::forecast(h=8)
   pred3    <- modelo3 %>% forecast::forecast(h=8)
@@ -86,7 +86,7 @@ for(i in 0:(ntotal-ntrain-h)){
   pred5    <- modelo5 %>% forecast::forecast(h=8)
   pred6    <- modelo6 %>% forecast::forecast(h=8)
   pred7    <- modelo7 %>% forecast::forecast(h=8)
-  pred8    <- modelo8 %>% forecast::forecast(h=8)
+  # pred8    <- modelo8 %>% forecast::forecast(h=8)
   pred9    <- modelo9 %>% forecast::forecast(h=8)
   pred10    <- modelo10 %>% forecast::forecast(h=8)
   pred11    <- modelo11 %>% forecast::forecast(h=8)
@@ -94,15 +94,15 @@ for(i in 0:(ntotal-ntrain-h)){
   medidas1 <- rbind(medidas1, accuracy(pred1,testing)[2,])
   medidas2 <- rbind(medidas2, accuracy(pred2,testing)[2,])
   medidas3 <- rbind(medidas3, accuracy(pred3,testing)[2,])
-  medidas4 <- rbind(medidas4, accuracy(pred4,testing)[2,])  
-  medidas5 <- rbind(medidas5, accuracy(pred5,testing)[2,]) 
-  medidas6 <- rbind(medidas6, accuracy(pred6,testing)[2,])  
-  medidas7 <- rbind(medidas7, accuracy(pred7,testing)[2,])  
-  medidas8 <- rbind(medidas8, accuracy(pred8,testing)[2,])  
-  medidas9 <- rbind(medidas9, accuracy(pred9,testing)[2,])  
-  medidas10 <- rbind(medidas10, accuracy(pred10,testing)[2,])  
-  medidas11 <- rbind(medidas11, accuracy(pred11,testing)[2,])  
-  medidas12 <- rbind(medidas12, accuracy(pred12,testing)[2,])  
+  medidas4 <- rbind(medidas4, accuracy(pred4,testing)[2,])
+  medidas5 <- rbind(medidas5, accuracy(pred5,testing)[2,])
+  medidas6 <- rbind(medidas6, accuracy(pred6,testing)[2,])
+  medidas7 <- rbind(medidas7, accuracy(pred7,testing)[2,])
+  # medidas8 <- rbind(medidas8, accuracy(pred8,testing)[2,])  
+  medidas9 <- rbind(medidas9, accuracy(pred9,testing)[2,])
+  medidas10 <- rbind(medidas10, accuracy(pred10,testing)[2,])
+  medidas11 <- rbind(medidas11, accuracy(pred11,testing)[2,])
+  medidas12 <- rbind(medidas12, accuracy(pred12,testing)[2,])
 }
 
 medidas1 %>% colMeans
@@ -112,84 +112,83 @@ medidas4 %>% colMeans
 medidas5 %>% colMeans
 medidas6 %>% colMeans
 medidas7 %>% colMeans
-medidas8 %>% colMeans
 medidas9 %>% colMeans
 medidas10 %>% colMeans
 medidas11 %>% colMeans
 medidas12 %>% colMeans
 
-serie7 %>% Arima(order=c(0,1,0),seasonal=c(2,1,1)) -> modelo_5
-serie7 %>% Arima(order=c(1,1,1),seasonal=c(2,1,1)) -> modelo_10
+serie7 %>% Arima(order=c(0,1,0),seasonal=c(2,0,0)) -> modelo_1
+serie7 %>% Arima(order=c(1,1,1),seasonal=c(1,0,1)) -> modelo_9
 
-modelo_5 %>% residuals -> residuales_5
-modelo_10 %>% residuals -> residuales_10
+modelo_1 %>% residuals -> residuales_1
+modelo_9 %>% residuals -> residuales_9
 
-modelo_5 %>%
+modelo_1 %>%
   sw_augment() %>% 
   ggplot(aes(x = index, y = .resid)) +
   geom_hline(yintercept = 0, color = "grey40") +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "loess") +
-  labs(title = "Residuales del modelo SARIMA(0,1,0)x(2,1,1)4", x = "") + 
-  theme_minimal() -> graf_res_5
+  labs(title = "Residuales del modelo SARIMA(0,1,0)x(2,0,0)4", x = "") + 
+  theme_minimal() -> graf_res_1
 
-modelo_10 %>%
+modelo_9 %>%
   sw_augment() %>% 
   ggplot(aes(x = index, y = .resid)) +
   geom_hline(yintercept = 0, color = "grey40") +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "loess") +
-  labs(title = "Residuales del modelo SARIMA(1,1,1)x(2,1,1)4", x = "") + 
-  theme_minimal()-> graf_res_10
+  labs(title = "Residuales del modelo SARIMA(1,1,1)x(1,0,1)4", x = "") + 
+  theme_minimal()-> graf_res_9
 
-grid.arrange(graf_res_5, graf_res_10,ncol=2)
+grid.arrange(graf_res_1, graf_res_9,ncol=2)
 
-modelo_5 %>% t_stat
-modelo_10 %>% t_stat
+modelo_1 %>% t_stat
+modelo_9 %>% t_stat
 
 modelo_5 %>% residuals %>% t.test
 modelo_10 %>% residuals %>% t.test
 
-modelo_5 %>% residuals %>% shapiro.test
-modelo_10 %>% residuals %>% shapiro.test
+modelo_1 %>% residuals %>% shapiro.test
+modelo_9 %>% residuals %>% shapiro.test
 
 library(nortest)
 
-modelo_5 %>% residuals %>% ad.test
-modelo_10 %>% residuals %>% ad.test
+modelo_1 %>% residuals %>% ad.test
+modelo_9 %>% residuals %>% ad.test
 
-modelo_5 %>% residuals %>% ks.test("pnorm")
-modelo_10 %>% residuals %>% ks.test("pnorm")
+modelo_1 %>% residuals %>% ks.test("pnorm")
+modelo_9 %>% residuals %>% ks.test("pnorm")
 
-residuales_5 %>% hist()
-residuales_10 %>% hist()
+residuales_1 %>% hist()
+residuales_9 %>% hist()
 
-residuales_5 %>% qqnorm();residuales_1 %>% qqline()
-residuales_10 %>% qqnorm();residuales_2 %>% qqline()
+residuales_1 %>% qqnorm();residuales_1 %>% qqline()
+residuales_9 %>% qqnorm();residuales_9 %>% qqline()
 
 library(moments)
-residuales_5%>% kurtosis
-residuales_10 %>% kurtosis
+residuales_1%>% kurtosis
+residuales_9 %>% kurtosis
 
-residuales_5 %>% TSA::acf(lag=72) 
-residuales_10 %>% TSA::acf(lag=72) 
+residuales_1 %>% TSA::acf(lag=72) 
+residuales_9 %>% TSA::acf(lag=72) 
 
-residuales_5 %>% BoxCox.lambda() #
-residuales_10 %>% BoxCox.lambda()
+residuales_1 %>% BoxCox.lambda()
+residuales_9 %>% BoxCox.lambda()
 
-residuales_5 %>% aTSA::stationary.test(method="kpss")
-residuales_10 %>% aTSA::stationary.test(method="kpss")
+residuales_1 %>% aTSA::stationary.test(method="kpss")
+residuales_9 %>% aTSA::stationary.test(method="kpss")
 
-residuales_5 %>% aTSA::stationary.test(method="adf")
-residuales_10 %>% aTSA::stationary.test(method="adf")
+residuales_1 %>% aTSA::stationary.test(method="adf")
+residuales_9 %>% aTSA::stationary.test(method="adf")
 
-residuales_5 %>% aTSA::stationary.test(method="pp")
-residuales_10 %>% aTSA::stationary.test(method="pp")
+residuales_1 %>% aTSA::stationary.test(method="pp")
+residuales_9 %>% aTSA::stationary.test(method="pp")
 
 
-modelo_5 %>% forecast::forecast(h=8)
+modelo_1 %>% forecast::forecast(h=8)
 
-modelo_5 %>% 
+modelo_1 %>% 
   forecast::forecast(h=8) %>% 
   sw_sweep() %>%
   ggplot(aes(x = index, y = value, color = key)) +
