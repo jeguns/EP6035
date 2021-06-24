@@ -116,6 +116,7 @@ Arima(serie5, order = c(1,1,1)) %>% t_stat
 Arima(serie5, order = c(1,1,1),include.mean=TRUE)
 Arima(serie5, order = c(1,1,1),include.mean=FALSE)
 Arima(serie5, order = c(1,1,1),include.drift=TRUE)
+Arima(serie5, order = c(1,1,1),include.drift=TRUE) %>% t_stat
 Arima(serie5, order = c(1,1,1),include.drift=FALSE)
 Arima(serie5, order = c(1,1,1),include.constant=TRUE)
 Arima(serie5, order = c(1,1,1),include.constant=FALSE)

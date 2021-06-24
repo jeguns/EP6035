@@ -17,9 +17,10 @@ library(tidyquant)
 set.seed(444)
 sim_sarima(model = list(sar=c(0.9,-0.32), nseasons=4),
            n     = 120) -> serie6
-serie6 %>% autoplot()
+serie6 %>% autoplot() # no funciona
 serie6 %>% ts(frequency = 4) %>% autoplot()
 serie6 %>% auto.arima
+serie6 %>% auto.arima %>% t_stat
 serie6 %>% ts(frequency = 4) %>% auto.arima
 serie6 %>% ts(frequency = 4) -> serie6
 
