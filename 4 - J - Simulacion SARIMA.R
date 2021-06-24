@@ -204,15 +204,14 @@ modelo_1 %>%
 
 # Modelo SARIMA (completo) ------------------------------------------------
 
-set.seed(123) #5435
-sim_sarima(model = list(ar  = 0.85, ma  = -0.52,
-                        sar = -0.63, sma = 0.48, 
-                        nseasons = 4, 
-                        iorder   = 1, siorder=1),
+set.seed(123)
+sim_sarima(model = list(ar  = 0.85,  iorder  = 1, ma  = -0.52,
+                        sar = -0.63, siorder = 1, sma = 0.48, 
+                        nseasons = 4),
            n     = 150) -> serie8
 serie8 %>% ts(frequency = 4) -> serie8
 serie8 %>% autoplot()
-serie8 %>% auto.arima # SARIMA(2,1,2)x(1,1,0)4
+serie8 %>% auto.arima # SARIMA(2,1,2)x(1,1,1)4
 serie8 %>% auto.arima %>% t_stat 
 
 serie8 %>% aTSA::stationary.test(method = "kpss",lag.short=T)
@@ -231,13 +230,13 @@ serie8 %>% diff() %>% aTSA::stationary.test(method = "pp",lag.short=T)
 serie8 %>% diff() %>% BoxCox.lambda()
 serie8 %>% diff() %>% acf2(72) # SARIMA(1,1,1)x(2,0,0)4
 
-serie8 %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "kpss",lag.short=T)
-serie8 %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "kpss",lag.short=F)
-serie8 %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "adf")
-serie8 %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "pp",lag.short=F)
-serie8 %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "pp",lag.short=T)
-serie8 %>% diff() %>% diff(12) %>% BoxCox.lambda()
-serie8 %>% diff() %>% diff(12) %>% acf2(72) # SARIMA(1,1,1)x(3,1,0)4
+serie8 %>% diff() %>% diff(4) %>% aTSA::stationary.test(method = "kpss",lag.short=T)
+serie8 %>% diff() %>% diff(4) %>% aTSA::stationary.test(method = "kpss",lag.short=F)
+serie8 %>% diff() %>% diff(4) %>% aTSA::stationary.test(method = "adf")
+serie8 %>% diff() %>% diff(4) %>% aTSA::stationary.test(method = "pp",lag.short=F)
+serie8 %>% diff() %>% diff(4) %>% aTSA::stationary.test(method = "pp",lag.short=T)
+serie8 %>% diff() %>% diff(4) %>% BoxCox.lambda()
+serie8 %>% diff() %>% diff(4) %>% acf2(72) # SARIMA(1,1,1)x(1,1,0)4
 
 ntotal = length(serie8)
 ntrain = 120
@@ -247,9 +246,9 @@ medidas1 = medidas2 = medidas3 = NULL
 for(i in 0:(ntotal-ntrain-h)){
   training <- serie8 %>%  window(start = 1, end = ntrain/4 + i/4)
   testing  <- serie8 %>%  window(start = ntrain/4  + i/4 + 1/4, end= ntrain/4 + i/4 + 8/4)
-  modelo1  <- training %>% Arima(order=c(2,1,2),seasonal=c(1,1,0)) # auto.arima
+  modelo1  <- training %>% Arima(order=c(2,1,2),seasonal=c(1,1,1)) # auto.arima
   modelo2  <- training %>% Arima(order=c(1,1,1),seasonal=c(2,0,0)) # propuesta 1
-  modelo3  <- training %>% Arima(order=c(1,1,1),seasonal=c(3,1,0)) # propuesta 2
+  modelo3  <- training %>% Arima(order=c(1,1,1),seasonal=c(1,1,0)) # propuesta 2
   pred1    <- modelo1 %>% forecast::forecast(h=8)
   pred2    <- modelo2 %>% forecast::forecast(h=8)
   pred3    <- modelo3 %>% forecast::forecast(h=8)
@@ -300,7 +299,7 @@ residuales_final %>% aTSA::stationary.test(method="kpss")
 residuales_final %>% aTSA::stationary.test(method="adf")
 residuales_final %>% aTSA::stationary.test(method="pp")
 
-residuales_final %>% forecast::forecast(h=8)
+modelo_final %>% forecast::forecast(h=8)
 
 modelo_final %>% 
   forecast::forecast(h=8) %>% 
@@ -317,7 +316,7 @@ modelo_final %>%
   theme_tq()
 
 
-
+modelo_final
 
 
 
