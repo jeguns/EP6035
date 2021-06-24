@@ -79,7 +79,7 @@ Arima(serie3, order = c(0,1,1))
 Arima(serie3, order = c(0,1,1)) %>% t_stat
 Arima(serie3, order = c(0,1,1),include.mean=TRUE)
 Arima(serie3, order = c(0,1,1),include.mean=FALSE)
-Arima(serie3, order = c(0,1,1),include.drift=TRUE)
+Arima(serie3, order = c(0,1,1),include.drift=TRUE)%>% t_stat
 Arima(serie3, order = c(0,1,1),include.drift=FALSE)
 Arima(serie3, order = c(0,1,1),include.constant=TRUE)
 Arima(serie3, order = c(0,1,1),include.constant=FALSE)
