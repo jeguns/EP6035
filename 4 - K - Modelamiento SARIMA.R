@@ -1,3 +1,6 @@
+
+# Paquetes ----------------------------------------------------------------
+
 library(readxl)
 library(forecast)
 library(ggplot2)
@@ -8,12 +11,17 @@ library(sweep)
 library(gridExtra)
 library(tidyquant)
 library(nortest)
+
+
+# Lectura -----------------------------------------------------------------
+
 datos = read_excel('Pruebas.xlsx',col_names=F)
 serie = datos %>% ts(frequency = 7)
 
 autoplot(serie)
-seasonplot(serie)
+seasonplot(serie,season.labels=c("Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"))
 ggseasonplot(serie,season.labels=c("Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"))
+ggseasonplot(diff(serie),season.labels=c("Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"))
 monthplot(serie)
 ggmonthplot(serie,labels= c("Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"))
 
@@ -31,21 +39,22 @@ serie %>% diff() %>% aTSA::stationary.test(method = "adf")
 serie %>% diff() %>% aTSA::stationary.test(method = "pp",lag.short=F)
 serie %>% diff() %>% aTSA::stationary.test(method = "pp",lag.short=T)
 serie %>% diff() %>% BoxCox.lambda()
-serie %>% diff(1) %>% acf2(280) 
+serie %>% diff() %>% acf2(280) # Propuesta: SARIMA(1,1,1)x(3,0,0)7
 
-serie %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "kpss",lag.short=T)
-serie %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "kpss",lag.short=F)
-serie %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "adf")
-serie %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "pp",lag.short=F)
-serie %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "pp",lag.short=T)
-serie %>% diff() %>% diff(12) %>% BoxCox.lambda()
-serie %>% diff() %>% diff(12) %>% acf2(280) # SARIMA(1,1,1)x(1,1,0)7
+serie %>% diff() %>% diff(7) %>% aTSA::stationary.test(method = "kpss",lag.short=T)
+serie %>% diff() %>% diff(7) %>% aTSA::stationary.test(method = "kpss",lag.short=F)
+serie %>% diff() %>% diff(7) %>% aTSA::stationary.test(method = "adf")
+serie %>% diff() %>% diff(7) %>% aTSA::stationary.test(method = "pp",lag.short=F)
+serie %>% diff() %>% diff(7) %>% aTSA::stationary.test(method = "pp",lag.short=T)
+serie %>% diff() %>% diff(7) %>% BoxCox.lambda()
+serie %>% diff() %>% diff(7) %>% acf2(280) # SARIMA(1,1,1)x(0,1,1)7
 
 serie %>% auto.arima # SARIMA(1,0,2)x(0,1,1)7
 
 ntotal = length(serie)
 ntrain = 350
 h      = 14
+medidas0 = NULL
 medidas1 = medidas2 = medidas3 = medidas4 = medidas5 = NULL
 medidas6 = medidas7 = medidas8 = medidas9 = medidas10 = NULL
 medidas11 = medidas12 = medidas13 = medidas14 = medidas15 = NULL
@@ -53,15 +62,16 @@ medidas11 = medidas12 = medidas13 = medidas14 = medidas15 = NULL
 for(i in 0:(ntotal-ntrain-h)){
   training <- serie %>%  window(start = 1, end = ntrain/7 + i/7)
   testing  <- serie %>%  window(start = ntrain/7  + i/7 + 1/7, end= ntrain/7 + i/7 + 14/7)
-  modelo1  <- training %>% Arima(order=c(1,1,1),seasonal=c(1,1,0)) # propuesta
+  modelo0  <- training %>% Arima(order=c(1,1,1),seasonal=c(3,0,0)) # propuesta 0
+  modelo1  <- training %>% Arima(order=c(1,1,1),seasonal=c(0,1,1)) # propuesta
   modelo2  <- training %>% Arima(order=c(1,0,2),seasonal=c(0,1,1)) # auto.arima
-  modelo3  <- training %>% Arima(order=c(1,1,1),seasonal=c(0,1,0)) # propuesta P-1
-  modelo3  <- training %>% Arima(order=c(1,1,1),seasonal=c(2,1,0)) # propuesta P+1
-  modelo4  <- training %>% Arima(order=c(1,1,1),seasonal=c(1,1,1)) # propuesta Q+1
-  modelo5  <- training %>% Arima(order=c(0,1,1),seasonal=c(1,1,0)) # propuesta p-1
-  modelo6  <- training %>% Arima(order=c(2,1,1),seasonal=c(1,1,0)) # propuesta p+1
-  modelo7  <- training %>% Arima(order=c(1,1,0),seasonal=c(1,1,0)) # propuesta q-1
-  modelo8  <- training %>% Arima(order=c(1,1,2),seasonal=c(1,1,0)) # propuesta q+1
+  modelo3  <- training %>% Arima(order=c(1,1,1),seasonal=c(0,1,0)) # propuesta Q-1
+  modelo3  <- training %>% Arima(order=c(1,1,1),seasonal=c(0,1,2)) # propuesta Q+1
+  modelo4  <- training %>% Arima(order=c(1,1,1),seasonal=c(1,1,1)) # propuesta P+1
+  modelo5  <- training %>% Arima(order=c(0,1,1),seasonal=c(0,1,1)) # propuesta p-1
+  modelo6  <- training %>% Arima(order=c(2,1,1),seasonal=c(0,1,1)) # propuesta p+1
+  modelo7  <- training %>% Arima(order=c(1,1,0),seasonal=c(0,1,1)) # propuesta q-1
+  modelo8  <- training %>% Arima(order=c(1,1,2),seasonal=c(0,1,1)) # propuesta q+1
   modelo9  <- training %>% Arima(order=c(1,0,2),seasonal=c(1,1,1)) # auto.arima P+1
   modelo10  <- training %>% Arima(order=c(1,0,2),seasonal=c(0,1,2)) # auto.arima Q+1
   modelo11  <- training %>% Arima(order=c(1,0,2),seasonal=c(0,1,0)) # auto.arima Q-1
@@ -69,6 +79,7 @@ for(i in 0:(ntotal-ntrain-h)){
   modelo13  <- training %>% Arima(order=c(0,0,2),seasonal=c(0,1,1)) # auto.arima p-1
   modelo14  <- training %>% Arima(order=c(1,0,3),seasonal=c(0,1,1)) # auto.arima q+1
   modelo15  <- training %>% Arima(order=c(1,0,1),seasonal=c(0,1,1)) # auto.arima q-1
+  pred0    <- modelo0 %>% forecast::forecast(h=8)
   pred1    <- modelo1 %>% forecast::forecast(h=8)
   pred2    <- modelo2 %>% forecast::forecast(h=8)
   pred3    <- modelo3 %>% forecast::forecast(h=8)
@@ -84,6 +95,7 @@ for(i in 0:(ntotal-ntrain-h)){
   pred13   <- modelo13 %>% forecast::forecast(h=8)
   pred14   <- modelo14 %>% forecast::forecast(h=8)
   pred15   <- modelo15 %>% forecast::forecast(h=8)
+  medidas0 <- rbind(medidas0, accuracy(pred0,testing)[2,])
   medidas1 <- rbind(medidas1, accuracy(pred1,testing)[2,])
   medidas2 <- rbind(medidas2, accuracy(pred2,testing)[2,])
   medidas3 <- rbind(medidas3, accuracy(pred3,testing)[2,])
@@ -102,7 +114,8 @@ for(i in 0:(ntotal-ntrain-h)){
 }
 
 options(scipen = 999)
-medidas1 %>% colMeans %>% abs %>% rbind(
+medidas0 %>% colMeans %>% abs %>% rbind(
+  medidas1 %>% colMeans %>% abs,
   medidas2 %>% colMeans %>% abs,
   medidas3 %>% colMeans %>% abs,
   medidas4 %>% colMeans %>% abs,
@@ -118,26 +131,37 @@ medidas1 %>% colMeans %>% abs %>% rbind(
   medidas14 %>% colMeans %>% abs,
   medidas15 %>% colMeans) %>% 
   as.data.frame() %>% 
-  mutate(modelo=seq(1,15)) %>% 
+  mutate(modelo=seq(0,15)) %>% 
   as.matrix() -> medidas
 
 library(Rfast)
-colMins(medidas)
+colMins(medidas) # modelo 8,modelo 15 y modelo 13 
 
-serie %>% Arima(order=c(1,0,2),seasonal=c(0,1,1)) -> modelo_2
+serie %>% Arima(order=c(1,1,2),seasonal=c(0,1,1)) -> modelo_8
+serie %>% Arima(order=c(0,0,2),seasonal=c(0,1,1)) -> modelo_13
 serie %>% Arima(order=c(1,0,1),seasonal=c(0,1,1)) -> modelo_15
 
-modelo_2 %>% residuals -> residuales_2
+modelo_8 %>% residuals -> residuales_8
+modelo_13 %>% residuals -> residuales_13
 modelo_15 %>% residuals -> residuales_15
 
-modelo_2 %>%
+modelo_8 %>%
   sw_augment() %>% 
   ggplot(aes(x = index, y = .resid)) +
   geom_hline(yintercept = 0, color = "grey40") +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "loess") +
-  labs(title = "Residuales del modelo SARIMA(1,0,2)x(0,1,1)4", x = "") + 
-  theme_minimal() -> grafico_2
+  labs(title = "Residuales del modelo SARIMA(1,1,2)x(0,1,1)7", x = "") + 
+  theme_minimal() -> grafico_8
+
+modelo_13 %>%
+  sw_augment() %>% 
+  ggplot(aes(x = index, y = .resid)) +
+  geom_hline(yintercept = 0, color = "grey40") +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess") +
+  labs(title = "Residuales del modelo SARIMA(0,0,2)x(0,1,1)7", x = "") + 
+  theme_minimal() -> grafico_13
 
 modelo_15 %>%
   sw_augment() %>% 
@@ -148,49 +172,65 @@ modelo_15 %>%
   labs(title = "Residuales del modelo SARIMA(1,0,1)x(0,1,1)4", x = "") + 
   theme_minimal() -> grafico_15
 
-grid.arrange(grafico_2,grafico_15,ncol=2)
+grid.arrange(grafico_8,grafico_13,grafico_15,ncol=3)
 
-modelo_2 %>% t_stat
+modelo_8 %>% t_stat
+modelo_13 %>% t_stat
 modelo_15 %>% t_stat
 
-modelo_2 %>% residuals %>% t.test
+modelo_8 %>% residuals %>% t.test
+modelo_13 %>% residuals %>% t.test
 modelo_15 %>% residuals %>% t.test
 
-modelo_2 %>% residuals %>% shapiro.test
+modelo_8 %>% residuals %>% shapiro.test
+modelo_13 %>% residuals %>% shapiro.test
 modelo_15 %>% residuals %>% shapiro.test
 
-modelo_2 %>% residuals %>% ad.test
+modelo_8 %>% residuals %>% ad.test
+modelo_13 %>% residuals %>% ad.test
 modelo_15 %>% residuals %>% ad.test
 
-modelo_2 %>% residuals %>% ks.test("pnorm")
+modelo_8 %>% residuals %>% ks.test("pnorm")
+modelo_13 %>% residuals %>% ks.test("pnorm")
 modelo_15 %>% residuals %>% ks.test("pnorm")
 
-residuales_2 %>% hist()
+residuales_8 %>% hist()
+residuales_13 %>% hist()
 residuales_15 %>% hist()
 
-residuales_2 %>% qqnorm();residuales_2 %>% qqline()
+residuales_8 %>% qqnorm();residuales_2 %>% qqline()
+residuales_13 %>% qqnorm();residuales_15 %>% qqline()
 residuales_15 %>% qqnorm();residuales_15 %>% qqline()
 
 library(moments)
-residuales_2 %>% kurtosis
+residuales_8 %>% kurtosis
+residuales_13 %>% kurtosis
 residuales_15 %>% kurtosis
 
-residuales_2 %>% TSA::acf(lag=140) 
+residuales_8 %>% TSA::acf(lag=140) 
+residuales_13 %>% TSA::acf(lag=140) 
 residuales_15 %>% TSA::acf(lag=140) 
 
-residuales_2 %>% BoxCox.lambda() 
+residuales_8 %>% BoxCox.lambda() 
+residuales_13 %>% BoxCox.lambda() 
 residuales_15 %>% BoxCox.lambda() 
 
-residuales_2 %>% aTSA::stationary.test(method="kpss")
+residuales_8 %>% aTSA::stationary.test(method="kpss")
+residuales_13 %>% aTSA::stationary.test(method="kpss")
 residuales_15 %>% aTSA::stationary.test(method="kpss")
 
-residuales_2 %>% aTSA::stationary.test(method="adf")
+residuales_8 %>% aTSA::stationary.test(method="adf")
+residuales_13 %>% aTSA::stationary.test(method="adf")
 residuales_15 %>% aTSA::stationary.test(method="adf")
 
-residuales_2 %>% aTSA::stationary.test(method="pp")
+residuales_8 %>% aTSA::stationary.test(method="pp")
+residuales_13 %>% aTSA::stationary.test(method="pp")
 residuales_15 %>% aTSA::stationary.test(method="pp")
 
-modelo_2 %>% forecast::forecast(h=14)
+
+# Predicción --------------------------------------------------------------
+
+modelo_8 %>% forecast::forecast(h=14)
 
 modelo_2 %>% 
   forecast::forecast(h=14) %>% 
