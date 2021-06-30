@@ -207,7 +207,7 @@ modelo_2 %>%
   scale_color_tq() +
   theme_tq()
 
-
+# Valores reales reportados
 # 50557
 # 52305
 # 53288
