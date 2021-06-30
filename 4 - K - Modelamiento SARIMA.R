@@ -7,11 +7,15 @@ library(astsa)
 library(sweep)
 library(gridExtra)
 library(tidyquant)
-
+library(nortest)
 datos = read_excel('Pruebas.xlsx',col_names=F)
 serie = datos %>% ts(frequency = 7)
 
 autoplot(serie)
+seasonplot(serie)
+ggseasonplot(serie,season.labels=c("Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"))
+monthplot(serie)
+ggmonthplot(serie,labels= c("Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"))
 
 serie %>% aTSA::stationary.test(method = "kpss",lag.short=T)
 serie %>% aTSA::stationary.test(method = "kpss",lag.short=F)
@@ -27,7 +31,7 @@ serie %>% diff() %>% aTSA::stationary.test(method = "adf")
 serie %>% diff() %>% aTSA::stationary.test(method = "pp",lag.short=F)
 serie %>% diff() %>% aTSA::stationary.test(method = "pp",lag.short=T)
 serie %>% diff() %>% BoxCox.lambda()
-serie %>% diff(1) %>% acf2(280)
+serie %>% diff(1) %>% acf2(280) 
 
 serie %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "kpss",lag.short=T)
 serie %>% diff() %>% diff(12) %>% aTSA::stationary.test(method = "kpss",lag.short=F)
@@ -98,28 +102,33 @@ for(i in 0:(ntotal-ntrain-h)){
 }
 
 options(scipen = 999)
-medidas1 %>% colMeans
-medidas2 %>% colMeans
-medidas3 %>% colMeans
-medidas4 %>% colMeans
-medidas5 %>% colMeans
-medidas6 %>% colMeans
-medidas7 %>% colMeans
-medidas8 %>% colMeans
-medidas9 %>% colMeans
-medidas10 %>% colMeans
-medidas11 %>% colMeans
-medidas12 %>% colMeans
-medidas13 %>% colMeans
-medidas14 %>% colMeans
-medidas15 %>% colMeans
+medidas1 %>% colMeans %>% abs %>% rbind(
+  medidas2 %>% colMeans %>% abs,
+  medidas3 %>% colMeans %>% abs,
+  medidas4 %>% colMeans %>% abs,
+  medidas5 %>% colMeans %>% abs,
+  medidas6 %>% colMeans %>% abs,
+  medidas7 %>% colMeans %>% abs,
+  medidas8 %>% colMeans %>% abs,
+  medidas9 %>% colMeans %>% abs,
+  medidas10 %>% colMeans %>% abs,
+  medidas11 %>% colMeans %>% abs,
+  medidas12 %>% colMeans %>% abs,
+  medidas13 %>% colMeans %>% abs,
+  medidas14 %>% colMeans %>% abs,
+  medidas15 %>% colMeans) %>% 
+  as.data.frame() %>% 
+  mutate(modelo=seq(1,15)) %>% 
+  as.matrix() -> medidas
 
+library(Rfast)
+colMins(medidas)
 
 serie %>% Arima(order=c(1,0,2),seasonal=c(0,1,1)) -> modelo_2
-serie %>% Arima(order=c(0,0,2),seasonal=c(0,1,1)) -> modelo_13
+serie %>% Arima(order=c(1,0,1),seasonal=c(0,1,1)) -> modelo_15
 
 modelo_2 %>% residuals -> residuales_2
-modelo_13 %>% residuals -> residuales_13
+modelo_15 %>% residuals -> residuales_15
 
 modelo_2 %>%
   sw_augment() %>% 
@@ -127,66 +136,67 @@ modelo_2 %>%
   geom_hline(yintercept = 0, color = "grey40") +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "loess") +
-  labs(title = "Residuales del modelo SARIMA(0,0,0)x(3,1,0)4", x = "") + 
+  labs(title = "Residuales del modelo SARIMA(1,0,2)x(0,1,1)4", x = "") + 
   theme_minimal() -> grafico_2
 
-modelo_13 %>%
+modelo_15 %>%
   sw_augment() %>% 
   ggplot(aes(x = index, y = .resid)) +
   geom_hline(yintercept = 0, color = "grey40") +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "loess") +
-  labs(title = "Residuales del modelo SARIMA(0,0,0)x(3,1,0)4", x = "") + 
-  theme_minimal() -> grafico_13
+  labs(title = "Residuales del modelo SARIMA(1,0,1)x(0,1,1)4", x = "") + 
+  theme_minimal() -> grafico_15
 
-grid.arrange(grafico_2,grafico_13,ncol=2)
+grid.arrange(grafico_2,grafico_15,ncol=2)
 
 modelo_2 %>% t_stat
-modelo_13 %>% t_stat
+modelo_15 %>% t_stat
 
 modelo_2 %>% residuals %>% t.test
-modelo_13 %>% residuals %>% t.test
+modelo_15 %>% residuals %>% t.test
 
 modelo_2 %>% residuals %>% shapiro.test
-modelo_13 %>% residuals %>% shapiro.test
+modelo_15 %>% residuals %>% shapiro.test
 
 modelo_2 %>% residuals %>% ad.test
-modelo_13 %>% residuals %>% ad.test
+modelo_15 %>% residuals %>% ad.test
 
 modelo_2 %>% residuals %>% ks.test("pnorm")
-modelo_13 %>% residuals %>% ks.test("pnorm")
+modelo_15 %>% residuals %>% ks.test("pnorm")
 
 residuales_2 %>% hist()
-residuales_13 %>% hist()
+residuales_15 %>% hist()
 
 residuales_2 %>% qqnorm();residuales_2 %>% qqline()
-residuales_13 %>% qqnorm();residuales_13 %>% qqline()
+residuales_15 %>% qqnorm();residuales_15 %>% qqline()
 
 library(moments)
 residuales_2 %>% kurtosis
-residuales_13 %>% kurtosis
+residuales_15 %>% kurtosis
 
 residuales_2 %>% TSA::acf(lag=140) 
-residuales_13 %>% TSA::acf(lag=140) 
+residuales_15 %>% TSA::acf(lag=140) 
 
 residuales_2 %>% BoxCox.lambda() 
-residuales_13 %>% BoxCox.lambda() 
+residuales_15 %>% BoxCox.lambda() 
 
 residuales_2 %>% aTSA::stationary.test(method="kpss")
-residuales_13 %>% aTSA::stationary.test(method="kpss")
+residuales_15 %>% aTSA::stationary.test(method="kpss")
 
 residuales_2 %>% aTSA::stationary.test(method="adf")
-residuales_13 %>% aTSA::stationary.test(method="adf")
+residuales_15 %>% aTSA::stationary.test(method="adf")
 
 residuales_2 %>% aTSA::stationary.test(method="pp")
-residuales_13 %>% aTSA::stationary.test(method="pp")
+residuales_15 %>% aTSA::stationary.test(method="pp")
 
 modelo_2 %>% forecast::forecast(h=14)
 
 modelo_2 %>% 
   forecast::forecast(h=14) %>% 
   sw_sweep() %>%
-  ggplot(aes(x = index, y = V1, color = key)) +
+  rename(Prediccion=3) %>% 
+  ggplot(aes(x = index, y = Prediccion, color = key)) +
   geom_ribbon(aes(ymin = lo.95, ymax = hi.95), 
               fill = "#D5DBFF", color = NA, size = 0) +
   geom_ribbon(aes(ymin = lo.80, ymax = hi.80, fill = key), 
@@ -197,4 +207,12 @@ modelo_2 %>%
   scale_color_tq() +
   theme_tq()
 
+
+# 50557
+# 52305
+# 53288
+# 50226
+# 41342
+# 17889
+# 44949
 
