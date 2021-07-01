@@ -235,7 +235,7 @@ modelo_8 %>% forecast::forecast(h=14)
 modelo_8 %>% 
   forecast::forecast(h=14) %>% 
   sw_sweep() %>%
-  rename(Prediccion=3) %>% 
+  dplyr::rename(Prediccion=3) %>% 
   ggplot(aes(x = index, y = Prediccion, color = key)) +
   geom_ribbon(aes(ymin = lo.95, ymax = hi.95), 
               fill = "#D5DBFF", color = NA, size = 0) +
