@@ -16,13 +16,13 @@ arima.sim(n= 250, model = list(ar=c(0.5,-0.3))) -> serie_ar2
 serie_ar2 %>% acf2()
 serie_ar2 %>% autoplot()
 serie_ar2 %>% nnetar() 
-serie_ar2 %>% nnetar(p=2) 
-serie_ar2 %>% nnetar(p=2,size=1)
+serie_ar2 %>% nnetar(p=3) 
+serie_ar2 %>% nnetar(p=5,size=3)
 
 arima.sim(n= 250, model = list(ar=c(0.8,-0.1,-0.6,0.4,-0.5,0.3))) -> serie_ar6
 serie_ar6 %>% acf2()
 serie_ar6 %>% autoplot()
-serie_ar6 %>% nnetar() 
+serie_ar6 %>% nnetar(p=6) 
 
 arima.sim(n= 200, model = list(ma=c(0.9))) -> serie_ma
 serie_ma %>% acf2()
