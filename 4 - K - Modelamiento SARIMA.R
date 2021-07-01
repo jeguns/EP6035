@@ -232,7 +232,7 @@ residuales_15 %>% aTSA::stationary.test(method="pp")
 
 modelo_8 %>% forecast::forecast(h=14)
 
-modelo_2 %>% 
+modelo_8 %>% 
   forecast::forecast(h=14) %>% 
   sw_sweep() %>%
   rename(Prediccion=3) %>% 
