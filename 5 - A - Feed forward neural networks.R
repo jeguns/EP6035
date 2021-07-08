@@ -24,7 +24,7 @@ serie_ar2 %>% nnetar(p=5,size=3)
 arima.sim(n= 250, model = list(ar=c(0.8,-0.1,-0.6,0.4,-0.5,0.3))) -> serie_ar6
 serie_ar6 %>% acf2()
 serie_ar6 %>% autoplot()
-serie_ar6 %>% nnetar(p=6) 
+serie_ar6 %>% nnetar() 
 
 arima.sim(n= 200, model = list(ma=c(0.9))) -> serie_ma
 serie_ma %>% acf2()
