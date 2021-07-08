@@ -60,6 +60,7 @@ modelo1 %>% sw_glance()
 modelo1 %>% sw_augment() 
 modelo1 %>% sw_augment() %>% View
 modelo1 %>% sw_augment() %>% select(.resid) %>% filter(!is.na(.resid)) %>% ts() -> residuales_1
+# verificar media cero y estacionariedad → ruido blanco
 residuales_1 %>% checkresiduals()
 library(moments)
 residuales_1 %>% skewness()
@@ -172,3 +173,8 @@ forecast::autoplot(Indice_Test) +
 
 grid.arrange(grafica_modelo1,grafica_modelo2,grafica_modelo3,ncol=3)
 
+
+# Finalmente:
+
+modelo3 %>% forecast::forecast(h=20, PI=TRUE, level = c(0.90,0.95)) -> predicciones_final
+predicciones_final
