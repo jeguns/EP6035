@@ -16,7 +16,7 @@ descomp$time.series %>%
   ts(frequency=12) %>%
   acf2(100) 
 
-maiz %>% nnetar() -> modelo1
+pbi %>% nnetar() -> modelo1
 modelo1
 modelo1 %>% sw_tidy()
 modelo1 %>% sw_glance()
@@ -25,10 +25,11 @@ modelo1 %>% sw_augment() %>% View
 
 pbi_Train = window(pbi,start = 2003, end = 2019)
 pbi_Test  = window(pbi,start = 2019+1/12)
+length(pbi_Train)
 length(pbi_Test)
 
 set.seed(65465)
-maiz_Train %>% nnetar() -> modelo_train1
+pbi_Train %>% nnetar() -> modelo_train1
 modelo_train1
 modelo_train1 %>% forecast::forecast(h=27, PI=TRUE, level = c(0.90,0.95)) -> predicciones_train1
 accuracy(predicciones_train1, pbi_Test)
@@ -95,6 +96,8 @@ forecast::autoplot(pbi_Test) +
   scale_y_continuous(limits=c(-50,400))+
   theme_minimal() -> grafica_modelo3
 
+grid.arrange(grafica_modelo1,grafica_modelo2,grafica_modelo3,ncol=3)
+
 set.seed(159753)
 pbi_Train %>% nnetar(p=1,P=2) -> modelo_train4
 modelo_train4
@@ -115,3 +118,6 @@ forecast::autoplot(pbi_Test) +
 
 grid.arrange(grafica_modelo1,grafica_modelo2,grafica_modelo3,grafica_modelo4,ncol=4)
 
+pbi %>% nnetar(p=1,P=2) -> modelo4
+modelo4 %>% forecast::forecast(h=27, PI=TRUE, level = c(0.90,0.95)) -> predicciones_4
+predicciones_4
