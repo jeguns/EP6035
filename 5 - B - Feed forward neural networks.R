@@ -17,7 +17,7 @@ read_excel('PBI.xlsx', skip=3,
            col_types = c("numeric","numeric")) -> datos
 
 datos$pbi %>% ts -> PBI
-PBI %>% ts %>% autoplot
+PBI %>% autoplot
 
 PBI_Train = window(PBI,start = 1, end = 60)
 PBI_Test  = window(PBI,start = 61)
@@ -79,5 +79,24 @@ forecast::autoplot(PBI_Test) +
   scale_y_continuous(limits=c(300000,550000))+
   theme_minimal() -> grafica_modelo3
 
-grid.arrange(grafica_modelo1,grafica_modelo2,grafica_modelo3,ncol=3)
+set.seed(159753)
+PBI_Train %>% nnetar(p=1,k=2) -> modelo_train4
+modelo_train4
+modelo_train4 %>% forecast::forecast(h=10, PI=TRUE, level = c(0.90,0.95)) -> predicciones_train4
+accuracy(predicciones_train4, PBI_Test)
+autoplot(PBI_Test) +
+  autolayer(predicciones_train4, series="Prediccion", linetype = "dashed", 
+            alpha = 0.5, size= 1, color="blue") + 
+  theme_minimal() +
+  ylab("Índice")
+autolayer(predicciones_train4, series="Prediccion", linetype = "dashed", 
+          alpha = 0.5, size= 1, color="blue") -> capa_modelo4
+forecast::autoplot(PBI_Test) +
+  capa_modelo4 +
+  geom_point(size = 1) +
+  scale_y_continuous(limits=c(300000,550000))+
+  theme_minimal() -> grafica_modelo4
+
+
+grid.arrange(grafica_modelo1,grafica_modelo2,grafica_modelo3,grafica_modelo4,ncol=4)
 
